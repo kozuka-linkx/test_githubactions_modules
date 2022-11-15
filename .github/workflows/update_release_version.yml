@@ -21,7 +21,7 @@ jobs:
           # マージ元のブランチ名取得
           merged_branch=${{github.head_ref}}
           # タイプを設定
-          branch_type='None'
+          branch_type='empty'
           if [[ $merged_branch  =~ ^change_ ]]; then
             branch_type='change'
           elif [[ $merged_branch  =~ ^add_ ]]; then
@@ -36,6 +36,7 @@ jobs:
         id: get-next-version-tag
         if: ${{ env.BRANCH_TYPE != 'None' }}
         run: |
+          echo env.BRANCH_TYPE
           MajorVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[1]}'`
           MinorVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[2]}'`
           PatchVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[3]}'`
@@ -55,6 +56,7 @@ jobs:
           echo ${TAG}
           echo "${TAG}" >> $GITHUB_ENV
       - name: Tag snapshot
+        if: ${{ env.BRANCH_TYPE != 'None' }}
         uses: tvdias/github-tagger@v0.0.1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
