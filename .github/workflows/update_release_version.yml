@@ -41,7 +41,7 @@ jobs:
           PatchVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[3]}'`
           CurrentVersion=`git describe --tags $(git rev-list --tags --max-count=1)`
           type=env.BRANCH_TYPE
-          echo ${type}
+          # echo ${type}
           if [ $type = "change" ]; then
             MajorVersion=$((MajorVersion+1))
             MinorVersion=0
@@ -51,6 +51,9 @@ jobs:
             PatchVersion=0
           elif [ $type = "mod" ]; then
             PatchVersion=$((PatchVersion+1))
+          else
+            echo "type: ${type}"
+            echo "BRANCH_TYPE: ${{ env.BRANCH_TYPE }}"
           fi
           echo "TAG=${MajorVersion}.${MinorVersion}.${PatchVersion}" >> $GITHUB_ENV
       - name: Tag snapshot
