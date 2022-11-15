@@ -36,12 +36,12 @@ jobs:
         id: get-next-version-tag
         if: ${{ env.BRANCH_TYPE != 'None' }}
         run: |
-          echo env.BRANCH_TYPE
           MajorVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[1]}'`
           MinorVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[2]}'`
           PatchVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[3]}'`
           CurrentVersion=`git describe --tags $(git rev-list --tags --max-count=1)`
           type=env.BRANCH_TYPE
+          echo ${type}
           if [ $type = "change" ]; then
             MajorVersion=$((MajorVersion+1))
             MinorVersion=0
@@ -52,9 +52,7 @@ jobs:
           elif [ $type = "mod" ]; then
             PatchVersion=$((PatchVersion+1))
           fi
-          TAG=${MajorVersion}.${MinorVersion}.${PatchVersion}
-          echo ${TAG}
-          echo "${TAG}" >> $GITHUB_ENV
+          echo "TAG=${MajorVersion}.${MinorVersion}.${PatchVersion}" >> $GITHUB_ENV
       - name: Tag snapshot
         if: ${{ env.BRANCH_TYPE != 'None' }}
         uses: tvdias/github-tagger@v0.0.1
