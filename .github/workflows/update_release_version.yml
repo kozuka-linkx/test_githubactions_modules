@@ -11,12 +11,6 @@ jobs:
     if: github.ref == 'mainline' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Generate token
-        id: generate_token
-        uses: tibdex/github-app-token@v1
-        with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.PRIVATE_KEY }}
       - name: Checkout
         uses: actions/checkout@v3
       - name: Unshallow
@@ -46,12 +40,12 @@ jobs:
           MinorVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[2]}'`
           PatchVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[3]}'`
           CurrentVersion=`git describe --tags $(git rev-list --tags --max-count=1)`
-          type=${{ env.BRANCH_TYPE }}
-          if [ ${type} = "change" ]; then
+          type=env.BRANCH_TYPE
+          if [ $type = "change" ]; then
             MajorVersion=$((MajorVersion+1))
-          elif [ ${type} = "add" ]; then
+          elif [ $type = "add" ]; then
             MinorVersion=$((MinorVersion+1))
-          elif [ ${type} = "mod" ]; then
+          elif [ $type = "mod" ]; then
             PatchVersion=$((PatchVersion+1))
           fi
           echo "TAG=${MajorVersion}.${MinorVersion}.${PatchVersion}" >> $GITHUB_ENV
@@ -60,4 +54,3 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ env.TAG }}
-
