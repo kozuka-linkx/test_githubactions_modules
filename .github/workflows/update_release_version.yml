@@ -11,6 +11,12 @@ jobs:
     if: github.ref == 'mainline' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.PRIVATE_KEY }}
       - name: Checkout
         uses: actions/checkout@v3
       - name: Unshallow
@@ -52,5 +58,5 @@ jobs:
       - name: Tag snapshot
         uses: tvdias/github-tagger@v0.0.1
         with:
-          repo-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          repo-token: ${{ steps.generate_token.outputs.token }}
           tag: ${{ steps.get-next-version-tag.outputs.tag }}
