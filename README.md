@@ -1,2 +1,3 @@
 # テスト
-githubactions用のテストリポジトリ
+githubactions用のテストリポジトリ  
+GithubActionsテスト中  
