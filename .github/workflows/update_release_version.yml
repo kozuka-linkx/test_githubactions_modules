@@ -1,0 +1,56 @@
+name: Auto Tag
+
+on:
+  pull_request:
+    branches:
+      - mainline
+    types: [closed]
+
+jobs:
+  production:
+    if: github.ref == 'mainline' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Unshallow
+        run: git fetch --prune --unshallow --tags
+      - name: Get Base Branch Type
+        id: get-branch-type
+        run: |
+          # マージ元のブランチ名取得
+          merged_branch=${{github.head_ref}}
+          # タイプを設定
+          branch_type="None"
+          if [[ $merged_branch  =~ ^change_ ]]; then
+            branch_type="change"
+          elif [[ $merged_branch  =~ ^add_ ]]; then
+            branch_type="add"
+          elif [[ $merged_branch =~ ^mod_ ]]; then
+            branch_type="mod"
+          else
+            branch_tpe="None"
+          fi
+          echo "::set-output name=BRANCH_TYPE::${branch_type}"
+      - name: Get Next Version TAG
+        id: get-next-version-tag
+        if: steps.get-branch-type.outputs.BRANCH_TYPE != "None"
+        run: |
+          MajorVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[1]}'`
+          MinorVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[2]}'`
+          PatchVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[3]}'`
+          CurrentVersion=`git describe --tags $(git rev-list --tags --max-count=1)`
+          type=steps.get-branch-type.outputs.BRANCH_TYPE
+          if [ $type = "change" ]; then
+            MajorVersion=$((MajorVersion+1))
+          elif [ $type = "add" ]; then
+            MinorVersion=$((MinorVersion+1))
+          elif [ $type = "mod" ]; then
+            PatchVersion=$((PatchVersion+1))
+          fi
+          echo "::set-output name=targ::${MajorVersion}.${MinorVersion}.${PatchVersion}"
+      - name: Tag snapshot
+        uses: tvdias/github-tagger@v0.0.1
+        with:
+          repo-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          tag: ${{ steps.get-next-version-tag.outputs.tag }}
