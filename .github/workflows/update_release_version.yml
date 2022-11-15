@@ -43,12 +43,17 @@ jobs:
           type=env.BRANCH_TYPE
           if [ $type = "change" ]; then
             MajorVersion=$((MajorVersion+1))
+            MinorVersion=0
+            PatchVersion=0
           elif [ $type = "add" ]; then
             MinorVersion=$((MinorVersion+1))
+            PatchVersion=0
           elif [ $type = "mod" ]; then
             PatchVersion=$((PatchVersion+1))
           fi
-          echo "TAG=${MajorVersion}.${MinorVersion}.${PatchVersion}" >> $GITHUB_ENV
+          TAG=${MajorVersion}.${MinorVersion}.${PatchVersion}
+          echo ${TAG}
+          echo "${TAG}" >> $GITHUB_ENV
       - name: Tag snapshot
         uses: tvdias/github-tagger@v0.0.1
         with:
