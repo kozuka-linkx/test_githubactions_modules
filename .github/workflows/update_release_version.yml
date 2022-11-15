@@ -58,6 +58,6 @@ jobs:
       - name: Tag snapshot
         uses: tvdias/github-tagger@v0.0.1
         with:
-          repo-token: ${{ steps.generate_token.outputs.token }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ env.TAG }}
 
