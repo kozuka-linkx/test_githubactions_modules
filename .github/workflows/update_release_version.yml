@@ -5,7 +5,6 @@ on:
     branches:
       - mainline
     types: [closed]
-
 jobs:
   production:
     if: github.ref == 'mainline' && github.event.pull_request.merged == true
@@ -31,10 +30,13 @@ jobs:
           else
             branch_tpe='None'
           fi
-          echo "::set-output name=BRANCH_TYPE::${branch_type}"
+          # echo "::set-output name=BRANCH_TYPE::${branch_type}"
+          echo "BRANCH_TYPE=${branch_type}" >> $GITHUB_ENV
+        env:
+          branch_type: None
       - name: Get Next Version TAG
         id: get-next-version-tag
-        if: steps.get-branch-type.outputs.BRANCH_TYPE != 'None'
+        if: ${{ env.BRANCH_TYPE != 'None' }}
         run: |
           MajorVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[1]}'`
           MinorVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[2]}'`
@@ -48,9 +50,11 @@ jobs:
           elif [ $type = "mod" ]; then
             PatchVersion=$((PatchVersion+1))
           fi
-          echo "::set-output name=targ::${MajorVersion}.${MinorVersion}.${PatchVersion}"
+          # echo "::set-output name=targ::${MajorVersion}.${MinorVersion}.${PatchVersion}"
+          echo "TAG=${MajorVersion}.${MinorVersion}.${PatchVersion}" >> $GITHUB_ENV
       - name: Tag snapshot
         uses: tvdias/github-tagger@v0.0.1
         with:
           repo-token: ${{ secrets.GH_ACCESS_TOKEN }}
-          tag: ${{ steps.get-next-version-tag.outputs.tag }}
+          # tag: ${{ steps.get-next-version-tag.outputs.tag }}
+          tag: ${{ env.TAG }}
