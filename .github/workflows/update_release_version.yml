@@ -37,10 +37,7 @@ jobs:
           else
             branch_tpe='None'
           fi
-          # echo "::set-output name=BRANCH_TYPE::${branch_type}"
           echo "BRANCH_TYPE=${branch_type}" >> $GITHUB_ENV
-        env:
-          branch_type: None
       - name: Get Next Version TAG
         id: get-next-version-tag
         if: ${{ env.BRANCH_TYPE != 'None' }}
@@ -49,18 +46,18 @@ jobs:
           MinorVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[2]}'`
           PatchVersion=`git describe --tags $(git rev-list --tags --max-count=1) | awk '{split($0, version, "."); print version[3]}'`
           CurrentVersion=`git describe --tags $(git rev-list --tags --max-count=1)`
-          type=steps.get-branch-type.outputs.BRANCH_TYPE
-          if [ $type = "change" ]; then
+          type=${{ env.BRANCH_TYPE }}
+          if [ ${type} = "change" ]; then
             MajorVersion=$((MajorVersion+1))
-          elif [ $type = "add" ]; then
+          elif [ ${type} = "add" ]; then
             MinorVersion=$((MinorVersion+1))
-          elif [ $type = "mod" ]; then
+          elif [ ${type} = "mod" ]; then
             PatchVersion=$((PatchVersion+1))
           fi
-          # echo "::set-output name=targ::${MajorVersion}.${MinorVersion}.${PatchVersion}"
           echo "TAG=${MajorVersion}.${MinorVersion}.${PatchVersion}" >> $GITHUB_ENV
       - name: Tag snapshot
         uses: tvdias/github-tagger@v0.0.1
         with:
           repo-token: ${{ steps.generate_token.outputs.token }}
-          tag: ${{ steps.get-next-version-tag.outputs.tag }}
+          tag: ${{ env.TAG }}
+
